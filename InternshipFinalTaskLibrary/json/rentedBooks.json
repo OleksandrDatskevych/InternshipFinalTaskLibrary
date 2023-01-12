@@ -1,6 +1,26 @@
-﻿[
+[
   {
     "BookId": 1,
+    "SubscriberId": 1
+  },
+  {
+    "BookId": 5,
+    "SubscriberId": 2
+  },
+  {
+    "BookId": 3,
+    "SubscriberId": 2
+  },
+  {
+    "BookId": 7,
+    "SubscriberId": 2
+  },
+  {
+    "BookId": 8,
+    "SubscriberId": 2
+  },
+  {
+    "BookId": 5,
     "SubscriberId": 1
   }
 ]

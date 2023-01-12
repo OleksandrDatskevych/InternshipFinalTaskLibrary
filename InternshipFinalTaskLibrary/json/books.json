@@ -5,15 +5,15 @@
     "Author": "Senator Armstrong",
     "Title": "It has to be this way",
     "Year": "1995-01-01T00:00:00",
-    "Quantity": 7
+    "Quantity": 6
   },
   {
-    "Id": 6,
+    "Id": 5,
     "Category": "MGS",
     "Author": "Jetstream Sam",
     "Title": "It\u0027s the only thing I\u0027ve ever known",
     "Year": "2014-01-01T00:00:00",
-    "Quantity": 10
+    "Quantity": 8
   },
   {
     "Id": 7,
@@ -21,7 +21,7 @@
     "Author": "Raiden",
     "Title": "Rules of nature",
     "Year": "2014-01-01T00:00:00",
-    "Quantity": 5
+    "Quantity": 4
   },
   {
     "Id": 8,
@@ -29,6 +29,6 @@
     "Author": "Stephen King",
     "Title": "The Shining",
     "Year": "1977-01-01T00:00:00",
-    "Quantity": 8
+    "Quantity": 7
   }
 ]
