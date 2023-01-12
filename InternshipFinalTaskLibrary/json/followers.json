@@ -19,5 +19,12 @@
     "Id": 3,
     "FirstName": "Username",
     "LastName": "Usersurname"
+  },
+  {
+    "YearOfBirth": "2004-01-01T00:00:00",
+    "SubTerm": "2024-01-12T19:36:04.299957+02:00",
+    "Id": 4,
+    "FirstName": "Hello",
+    "LastName": "User"
   }
 ]

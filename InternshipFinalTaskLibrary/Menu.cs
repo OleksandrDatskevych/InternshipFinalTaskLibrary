@@ -1,13 +1,11 @@
-﻿using System.Text.Encodings.Web;
-using System.Text.Json;
+﻿using System.Text.Json;
 using System.Text.RegularExpressions;
-using System.Text.Unicode;
 
 namespace InternshipFinalTaskLibrary
 {
     internal static class Menu
     {
-        private static readonly JsonSerializerOptions jsonOptions = new() { WriteIndented = true, AllowTrailingCommas = true, Encoder = JavaScriptEncoder.Create(UnicodeRanges.All)};
+        private static readonly JsonSerializerOptions jsonOptions = new() { WriteIndented = true, AllowTrailingCommas = true };
         private static readonly string pathToSolution = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\..\..\");
         
         private static User? LoggedUser { get; set; }
@@ -124,10 +122,12 @@ namespace InternshipFinalTaskLibrary
                 if (string.IsNullOrEmpty(login) || login.Length < 5)
                 {
                     Console.WriteLine("Login is too short. Try again.");
+                    Console.ReadKey();
                 }
                 else if (login.Length > 12)
                 {
                     Console.WriteLine("Login is too long. Try again.");
+                    Console.ReadKey();
                 }
             } while (string.IsNullOrEmpty(login) || login.Length < 5 || login.Length > 12);
 
@@ -137,7 +137,7 @@ namespace InternshipFinalTaskLibrary
             {
                 Console.WriteLine("Enter password:");
                 var password = PasswordInput();
-                string? firstName;
+                var firstName = string.Empty;
 
                 static bool checkName(string name)
                 {
@@ -157,7 +157,7 @@ namespace InternshipFinalTaskLibrary
                     }
                 } while (checkName(firstName));
 
-                string? lastName;
+                var lastName = string.Empty;
 
                 do
                 {
@@ -328,12 +328,185 @@ namespace InternshipFinalTaskLibrary
 
         private static void Sorting()
         {
-            throw new NotImplementedException();
+            var booksFile = pathToSolution + @"json\books.json";
+            var listOfBooks = JsonSerializer.Deserialize<List<Book>>(File.ReadAllText(booksFile), jsonOptions);
+            var wasListSorted = false;
+
+            do
+            {
+                try
+                {
+                    Console.WriteLine("Choose criterion to sort books:\n1. Category\n2. Author\n3. Title\n4. Year\n5. Quantity");
+                    int chosenOrder = 0;
+                    var chosenCriterion = int.Parse(Console.ReadLine());
+
+                    if (chosenCriterion > 0 && chosenCriterion < 6)
+                    {
+                        Console.WriteLine("Choose sort order:\n1. Ascending\n2. Descending");
+                        chosenOrder = int.Parse(Console.ReadLine());
+
+                        if (chosenOrder < 1 || chosenOrder > 2)
+                        {
+                            Console.WriteLine("Please enter an integer between 1 and 2.");
+                            continue;
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("Please enter an integer between 1 and 5.");
+                        continue;
+                    }
+
+                    var sortedList = chosenOrder switch
+                    {
+                        1 => chosenCriterion switch
+                        {
+                            1 => listOfBooks.OrderBy(i => i.Category).ToList(),
+                            2 => listOfBooks.OrderBy(i => i.Author).ToList(),
+                            3 => listOfBooks.OrderBy(i => i.Title).ToList(),
+                            4 => listOfBooks.OrderBy(i => i.Year).ToList(),
+                            5 => listOfBooks.OrderBy(i => i.Quantity).ToList()
+                        },
+                        2 => chosenCriterion switch
+                        {
+                            1 => listOfBooks.OrderByDescending(i => i.Category).ToList(),
+                            2 => listOfBooks.OrderByDescending(i => i.Author).ToList(),
+                            3 => listOfBooks.OrderByDescending(i => i.Title).ToList(),
+                            4 => listOfBooks.OrderByDescending(i => i.Year).ToList(),
+                            5 => listOfBooks.OrderByDescending(i => i.Quantity).ToList()
+                        }
+                    };
+
+                    foreach (var b in sortedList)
+                    {
+                        b.PrintBookInfo();
+                    }
+
+                    wasListSorted = true;
+                    Console.ReadKey();
+                    Console.Clear();
+                    MainMenu(LoggedUser);
+                }
+                catch (FormatException)
+                {
+                    Console.WriteLine($"Input error. Please enter an integer.");
+                }
+                catch (OverflowException)
+                {
+                    Console.WriteLine("Input error. Integer is too long.");
+                }
+            } while (!wasListSorted);
         }
 
         private static void Grouping()
         {
-            throw new NotImplementedException();
+            var booksFile = pathToSolution + @"json\books.json";
+            var listOfBooks = JsonSerializer.Deserialize<List<Book>>(File.ReadAllText(booksFile), jsonOptions);
+            var wasListGrouped = false;
+
+            do
+            {
+                try
+                {
+                    Console.WriteLine("Choose criterion to group books:\n1. Category\n2. Author\n3. Title\n4. Year");
+                    var chosenCriterion = int.Parse(Console.ReadLine());
+
+                    if (chosenCriterion < 0 || chosenCriterion > 4)
+                    {
+                        Console.WriteLine("Please enter an integer between 1 and 4");
+                        continue;
+                    }
+
+                    switch (chosenCriterion)
+                    {
+                        case 1:
+                            var result = listOfBooks.GroupBy(i => i.Category);
+
+                            foreach (var i in result)
+                            {
+                                TableBuilderHeader("Category", i.Key, new List<string>() { "Title", "Author", "Year", "Quantity" });
+
+                                foreach (var j in i)
+                                {
+                                    TableBuilderRow(j.Title, j.Author, j.Year.ToString(), j.Quantity.ToString());
+                                }
+                            }
+
+                            break;
+                        case 2:
+                            result = listOfBooks.GroupBy(i => i.Author);
+
+                            foreach (var i in result)
+                            {
+                                TableBuilderHeader("Author", i.Key, new List<string>() { "Title", "Year", "Quantity", "Category" });
+
+                                foreach (var j in i)
+                                {
+                                    TableBuilderRow(j.Title, j.Year.ToString(), j.Quantity.ToString(), j.Category);
+                                }
+                            }
+
+                            break;
+                        case 3:
+                            result = listOfBooks.GroupBy(i => i.Title);
+
+                            foreach (var i in result)
+                            {
+                                TableBuilderHeader("Title", i.Key, new List<string>() { "Author", "Year", "Quantity", "Category" });
+
+                                foreach (var j in i)
+                                {
+                                    TableBuilderRow(j.Author, j.Year.ToString(), j.Quantity.ToString(), j.Category);
+                                }
+                            }
+
+                            break;
+                        case 4:
+                            result = listOfBooks.GroupBy(i => i.Year.Year.ToString());
+
+                            foreach (var i in result)
+                            {
+                                TableBuilderHeader("Year", i.Key, new List<string>() { "Title", "Author", "Quantity", "Category" });
+
+                                foreach (var j in i)
+                                {
+                                    TableBuilderRow(j.Title, j.Author, j.Quantity.ToString(), j.Category);
+                                }
+                            }
+
+                            break;
+                    };
+
+                    Console.ReadKey();
+                    Console.Clear();
+                    wasListGrouped = true;
+                    MainMenu(LoggedUser);
+                }
+                catch (FormatException)
+                {
+
+                }
+                catch (OverflowException)
+                {
+
+                }
+            } while (!wasListGrouped);
+        }
+
+        private static void TableBuilderHeader(string nameOfKey, string key, List<string> fieldNames)
+        {
+            var header = new string('-', 150);
+            var header2 = String.Format("|{0,35}|{1,35}|{2,35}|{3,35}", fieldNames[0], fieldNames[1], fieldNames[2], fieldNames[3]);
+            Console.WriteLine($"{nameOfKey}: {key}");
+            Console.WriteLine(header);
+            Console.WriteLine(header2);
+            Console.WriteLine(header);
+        }
+
+        private static void TableBuilderRow(string field1, string field2, string field3, string field4)
+        {
+            var output = String.Format("|{0,35}|{1,35}|{2,35}|{3,35}", field1, field2, field3, field4);
+            Console.WriteLine(output);
         }
 
         private static void SubsList()
