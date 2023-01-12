@@ -18,9 +18,17 @@
   {
     "Id": 7,
     "Category": "MGS",
-    "Author": "Monsoon",
-    "Title": "Stains of time",
+    "Author": "Raiden",
+    "Title": "Rules of nature",
     "Year": "2014-01-01T00:00:00",
-    "Quantity": 7
+    "Quantity": 5
+  },
+  {
+    "Id": 8,
+    "Category": "Horror",
+    "Author": "Stephen King",
+    "Title": "The Shining",
+    "Year": "1977-01-01T00:00:00",
+    "Quantity": 8
   }
 ]

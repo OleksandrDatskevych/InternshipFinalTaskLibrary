@@ -1,39 +1,38 @@
-﻿using System.Runtime.CompilerServices;
-using System.Security.AccessControl;
+﻿using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using System.Text.Unicode;
 
 namespace InternshipFinalTaskLibrary
 {
-    internal class Menu
+    internal static class Menu
     {
-        private static readonly JsonSerializerOptions jsonOptions = new() { WriteIndented = true, AllowTrailingCommas = true };
+        private static readonly JsonSerializerOptions jsonOptions = new() { WriteIndented = true, AllowTrailingCommas = true, Encoder = JavaScriptEncoder.Create(UnicodeRanges.All)};
         private static readonly string pathToSolution = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\..\..\");
         
         private static User? LoggedUser { get; set; }
 
-        public static void Start()
+        private static void MenuBuilder(List<string> menuComponents, Dictionary<int,Action> menuActions)
         {
-            Console.WriteLine("Welcome to the library!");
             var actionFound = false;
-            
+
             do
             {
                 try
                 {
-                    var actions = new Dictionary<int, Action>
+                    Console.WriteLine("Choose an option:");
+
+                    foreach (var (c,i) in menuComponents.WithIndex())
                     {
-                        { 1, LoginMenu },
-                        { 2, SubscribeMenu },
-                        { 3, LogOut }
-                    };
-                    Console.WriteLine("Choose an option:\n1. Log in\n2. Subscribe\n3. Log out");
+                        Console.WriteLine($"{i + 1}: {c}");
+                    }
+
                     var option = int.Parse(Console.ReadLine());
-                    actionFound = option > 0 && option <= actions.Count;
+                    actionFound = option > 0 && option <= menuActions.Count;
 
                     if (actionFound)
                     {
-                        actions[option]();
+                        menuActions[option]();
                     }
                     else
                     {
@@ -43,7 +42,7 @@ namespace InternshipFinalTaskLibrary
                 catch (FormatException)
                 {
                     Console.Clear();
-                    Console.WriteLine("Input error. Please enter an integer between 1 and 3.");
+                    Console.WriteLine($"Input error. Please enter an integer between 1 and {menuActions.Count}.");
                 }
                 catch (OverflowException)
                 {
@@ -51,6 +50,19 @@ namespace InternshipFinalTaskLibrary
                     Console.WriteLine("Input error. Try again.");
                 }
             } while (!actionFound);
+        }
+
+        public static void Start()
+        {
+            Console.WriteLine("Welcome to the library!");
+            var menuActions = new Dictionary<int, Action>
+            {
+                { 1, LoginMenu },
+                { 2, SubscribeMenu },
+                { 3, LogOut }
+            };
+            var menuComponents = new List<string>() { "Log in", "Subscribe", "Log out" };
+            MenuBuilder(menuComponents, menuActions);
         }
 
         private static void LoginMenu()
@@ -71,9 +83,9 @@ namespace InternshipFinalTaskLibrary
                 Console.WriteLine("Enter login:");
                 var login = Console.ReadLine();
                 Console.WriteLine("Enter password:");
-                var password = Console.ReadLine();
+                var password = PasswordInput();
                 var usersCreds = subsCreds.ConvertAll(i => i as Credentials).Union(libsCreds.ConvertAll(i => i as Credentials));
-                var userCredsToLogin = usersCreds.Where(i => i.Login == login).Where(i => i.Password == password).ToList();
+                var userCredsToLogin = usersCreds.Where(i => i.Login == login).Where(i => i.Password == Cipher(password)).ToList();
 
                 if (userCredsToLogin.Any())
                 {
@@ -124,7 +136,7 @@ namespace InternshipFinalTaskLibrary
             if (!existingLoginCheck.Any())
             {
                 Console.WriteLine("Enter password:");
-                var password = Console.ReadLine();
+                var password = PasswordInput();
                 string? firstName;
 
                 static bool checkName(string name)
@@ -169,7 +181,7 @@ namespace InternshipFinalTaskLibrary
                 }
 
                 var newSub = new Subscriber(subs.Any() ? subs.Last().Id + 1 : 1, firstName, lastName, yearOfBirth);
-                var newCreds = new SubscriberCredentials(subs.Any() ? subs.Last().Id + 1 : 1, login, password);
+                var newCreds = new SubscriberCredentials(subs.Any() ? subs.Last().Id + 1 : 1, login, Cipher(password));
                 subs.Add(newSub);
                 subsCreds.Add(newCreds);
                 var jsonSubsString = JsonSerializer.Serialize(subs, jsonOptions);
@@ -212,13 +224,7 @@ namespace InternshipFinalTaskLibrary
         private static void LibMenu()
         {
             Console.WriteLine("Librarian menu.");
-            var actionFound = false;
-
-            do
-            {
-                try
-                {
-                    var actions = new Dictionary<int, Action>
+            var menuActions = new Dictionary<int, Action>
                     {
                         { 1, BooksCatalogue },
                         { 2, AddBook },
@@ -229,81 +235,25 @@ namespace InternshipFinalTaskLibrary
                         { 7, DeleteSub },
                         { 8, LogOut }
                     };
-                    Console.WriteLine("Choose an option:\n1. Catalogue\n2. Add book\n3. Delete book\n4. Sorting\n5. Grouping\n6. Subscribers\n" +
-                        "7. Delete subscriber\n8. Log out");
-                    var option = int.Parse(Console.ReadLine());
-                    actionFound = option > 0 && option <= actions.Count;
-
-                    if (actionFound)
-                    {
-                        actions[option]();
-                    }
-                    else
-                    {
-                        throw new FormatException();
-                    }
-                }
-                catch (FormatException)
-                {
-                    Console.Clear();
-                    Console.WriteLine("Input error. Please enter an integer between 1 and 8");
-                }
-                catch (OverflowException)
-                {
-                    Console.Clear();
-                    Console.WriteLine("Input error. Try again.");
-                }
-            } while (!actionFound);
-
-            Console.ReadKey();
+            var menuComponents = new List<string>() { "Catalogue", "Add book", "Delete book", "Sorting", "Grouping", "Subscribers", 
+                "Delete subscriber", "Log out" };
+            MenuBuilder(menuComponents, menuActions);
         }
 
         private static void SubMenu()
         {
             Console.WriteLine("Subscriber menu.");
-            var actionFound = false;
-
-            do
+            var menuActions = new Dictionary<int, Action>
             {
-                try
-                {
-                    var actions = new Dictionary<int, Action>
-                    {
-                        { 1, BooksCatalogue },
-                        { 2, RentBook },
-                        { 3, RentedBooks },
-                        { 4, ReturnBook },
-                        { 5, CancelSubscription },
-                        { 6, LogOut }
-                    };
-                    Console.WriteLine("Choose an option:\n1. Catalogue\n2. Rent a book\n3. Rented books\n4. Return book\n" +
-                        "5. Cancel subscription\n6. Log out");
-                    var option = int.Parse(Console.ReadLine());
-                    actionFound = option > 0 && option <= actions.Count;
-
-                    if (actionFound)
-                    {
-                        actions[option]();
-                    }
-                    else
-                    {
-                        throw new FormatException();
-                    }
-                }
-                catch (FormatException)
-                {
-                    Console.Clear();
-                    Console.WriteLine("Input error. Please enter an integer between 1 and 6");
-                }
-                catch (OverflowException)
-                {
-                    Console.Clear();
-                    Console.WriteLine("Input error. Try again.");
-                }
-            } while (!actionFound);
-
-            Console.ReadKey();
-            Console.ReadKey();
+                { 1, BooksCatalogue },
+                { 2, RentBook },
+                { 3, RentedBooks },
+                { 4, ReturnBook },
+                { 5, CancelSubscription },
+                { 6, LogOut }
+            };
+            var menuComponents = new List<string>() { "Catalogue", "Rent a book", "Rented books", "Return book", "Cancel subscription", "Log out" };
+            MenuBuilder(menuComponents, menuActions);
         }
 
         private static void BooksCatalogue()
@@ -388,7 +338,7 @@ namespace InternshipFinalTaskLibrary
 
         private static void SubsList()
         {
-            var subsFile = pathToSolution + @"json\followersCredentials.json";
+            var subsFile = pathToSolution + @"json\followers.json";
             var subs = JsonSerializer.Deserialize<List<Subscriber>>(File.ReadAllText(subsFile), jsonOptions);
 
             if (subs.Any())
@@ -464,6 +414,55 @@ namespace InternshipFinalTaskLibrary
         private static void CancelSubscription()
         {
             throw new NotImplementedException();
+        }
+
+        private static string Cipher(string str)
+        {
+            var result = new char[str.Length];
+            var key = "_b9-3)bur1b3)bbhl2b4luivt1vv24lhisfy9b3bhoi(";
+
+            for (var i = 0; i < str.Length; i++)
+            {
+                result[i] = (char)(str[i] ^ key[i % key.Length]);
+            }
+
+            return new string(result);
+        }
+
+        private static string PasswordInput()
+        {
+            var password = string.Empty;
+            ConsoleKeyInfo keyInfo = Console.ReadKey(true);
+
+            while (keyInfo.Key != ConsoleKey.Enter)
+            {
+                if (keyInfo.Key != ConsoleKey.Backspace)
+                {
+                    Console.Write("*");
+                    password += keyInfo.KeyChar;
+                }
+                else if (keyInfo.Key == ConsoleKey.Backspace)
+                {
+                    if (!string.IsNullOrEmpty(password))
+                    {
+                        password = password.Substring(0, password.Length - 1);
+                        var pos = Console.CursorLeft;
+                        Console.SetCursorPosition(pos - 1, Console.CursorTop);
+                        Console.Write(" ");
+                        Console.SetCursorPosition(pos - 1, Console.CursorTop);
+                    }
+                }
+
+                keyInfo = Console.ReadKey(true);
+            }
+
+            Console.WriteLine();
+            return password;
+        }
+
+        private static IEnumerable<(T item, int index)> WithIndex<T>(this IEnumerable<T> source)
+        {
+            return source.Select((item, index) => (item, index));
         }
     }
 }

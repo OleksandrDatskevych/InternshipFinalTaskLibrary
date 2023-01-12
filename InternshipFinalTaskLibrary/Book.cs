@@ -21,7 +21,7 @@
 
         public void PrintBookInfo()
         {
-            Console.WriteLine($"ID: {Id} - Category: {Category}, Author: {Author}, Title: {Title}, Year: {Year}");
+            Console.WriteLine($"ID: {Id} - Category: {Category}, \"{Title}\" by {Author}, {Year.Year} year, Quantity: {Quantity}");
         }
     }
 }
