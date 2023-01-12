@@ -1,0 +1,26 @@
+[
+  {
+    "Id": 3,
+    "Category": "MGS",
+    "Author": "Senator Armstrong",
+    "Title": "It has to be this way",
+    "Year": "1995-01-01T00:00:00",
+    "Quantity": 7
+  },
+  {
+    "Id": 6,
+    "Category": "MGS",
+    "Author": "Jetstream Sam",
+    "Title": "It\u0027s the only thing I\u0027ve ever known",
+    "Year": "2014-01-01T00:00:00",
+    "Quantity": 10
+  },
+  {
+    "Id": 7,
+    "Category": "MGS",
+    "Author": "Monsoon",
+    "Title": "Stains of time",
+    "Year": "2014-01-01T00:00:00",
+    "Quantity": 7
+  }
+]
