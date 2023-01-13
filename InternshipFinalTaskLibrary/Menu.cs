@@ -233,6 +233,7 @@ namespace InternshipFinalTaskLibrary
         {
             Console.WriteLine($"You are logged in as {Regex.Match(user.GetType().ToString(), @"\w*$")}.\n" +
                 $"Name: {user.FirstName} {user.LastName}.");
+
             if (user is Subscriber)
             {
                 SubMenu();
@@ -247,16 +248,16 @@ namespace InternshipFinalTaskLibrary
         {
             Console.WriteLine("Librarian menu.");
             var menuActions = new Dictionary<int, Action>
-                    {
-                        { 1, BooksCatalogueMenu },
-                        { 2, AddBook },
-                        { 3, DeleteBook },
-                        { 4, Sorting },
-                        { 5, Grouping },
-                        { 6, SubsList },
-                        { 7, DeleteSub },
-                        { 8, LogOut }
-                    };
+            {
+                { 1, BooksCatalogueMenu },
+                { 2, AddBook },
+                { 3, DeleteBook },
+                { 4, Sorting },
+                { 5, Grouping },
+                { 6, SubsList },
+                { 7, DeleteSub },
+                { 8, LogOut }
+            };
             var menuComponents = new List<string>() { "Catalogue", "Add book", "Delete book", "Sorting", "Grouping", "Subscribers", 
                 "Delete subscriber", "Log out" };
             MenuBuilder(menuComponents, menuActions);
@@ -287,6 +288,7 @@ namespace InternshipFinalTaskLibrary
             {
                 if (LoggedUser is Librarian)
                 {
+                    Console.WriteLine($"Total number of books: {listOfBooks.Count}");
                     foreach (var b in listOfBooks)
                     {
                         b.PrintBookInfo();
@@ -296,6 +298,7 @@ namespace InternshipFinalTaskLibrary
                 {
                     var booksAgeLimit = listOfBooks.
                         Where(i => (int)i.AgeCategory < (int)(DateTime.Now - (LoggedUser as Subscriber).YearOfBirth).TotalDays / 365).ToList();
+                    Console.WriteLine($"Total number of books: {booksAgeLimit.Count}");
 
                     foreach (var b in booksAgeLimit)
                     {
@@ -356,7 +359,9 @@ namespace InternshipFinalTaskLibrary
         private static void DeleteBook()
         {
             var booksFile = pathToSolution + @"json\books.json";
+            var rentedBooksFile = pathToSolution + @"json\rentedBooks.json";
             var listOfBooks = JsonSerializer.Deserialize<List<Book>>(File.ReadAllText(booksFile), jsonOptions);
+            var rentedBooks = JsonSerializer.Deserialize<List<RentedBooks>>(File.ReadAllText(rentedBooksFile), jsonOptions);
 
             foreach (var b in listOfBooks)
             {
@@ -369,10 +374,23 @@ namespace InternshipFinalTaskLibrary
 
             if (idMatch.Any())
             {
-                listOfBooks.Remove(idMatch[0]);
-                var jsonString = JsonSerializer.Serialize(listOfBooks, jsonOptions);
-                File.WriteAllText(booksFile, jsonString);
-                Console.WriteLine("Book successfully deleted");
+                if (rentedBooks.Where(i => i.BookId == bookId).Any())
+                {
+                    var subsWithBook = rentedBooks.Select(i => i.SubscriberId).Order().ToList();
+                    Console.Write($"Book with ID {bookId} cannot be deleted because it was rented by {subsWithBook.Count} users with following IDs:");
+
+                    foreach(var s in subsWithBook)
+                    {
+                        Console.Write($" {s}");
+                    }
+                }
+                else
+                {
+                    listOfBooks.Remove(idMatch[0]);
+                    var jsonString = JsonSerializer.Serialize(listOfBooks, jsonOptions);
+                    File.WriteAllText(booksFile, jsonString);
+                    Console.WriteLine("Book successfully deleted");
+                }
             }
             else
             {
@@ -478,7 +496,7 @@ namespace InternshipFinalTaskLibrary
                     switch (chosenCriterion)
                     {
                         case 1:
-                            var result = listOfBooks.GroupBy(i => i.Category);
+                            var result = listOfBooks.GroupBy(i => i.Category).OrderBy(i => i.Key);
 
                             foreach (var i in result)
                             {
@@ -492,7 +510,7 @@ namespace InternshipFinalTaskLibrary
 
                             break;
                         case 2:
-                            result = listOfBooks.GroupBy(i => i.Author);
+                            result = listOfBooks.GroupBy(i => i.Author).OrderBy(i => i.Key);
 
                             foreach (var i in result)
                             {
@@ -506,7 +524,7 @@ namespace InternshipFinalTaskLibrary
 
                             break;
                         case 3:
-                            result = listOfBooks.GroupBy(i => i.Title);
+                            result = listOfBooks.GroupBy(i => i.Title).OrderBy(i => i.Key);
 
                             foreach (var i in result)
                             {
@@ -520,7 +538,7 @@ namespace InternshipFinalTaskLibrary
 
                             break;
                         case 4:
-                            result = listOfBooks.GroupBy(i => i.Year.Year.ToString());
+                            result = listOfBooks.GroupBy(i => i.Year.Year.ToString()).OrderBy(i => i.Key);
 
                             foreach (var i in result)
                             {
@@ -540,20 +558,22 @@ namespace InternshipFinalTaskLibrary
                     wasListGrouped = true;
                     MainMenu(LoggedUser);
                 }
-                catch (FormatException)
+                catch (FormatException ex)
                 {
-
+                    Console.WriteLine(ex.Message);
+                    Console.WriteLine(ex.StackTrace);
                 }
-                catch (OverflowException)
+                catch (OverflowException ex)
                 {
-
+                    Console.WriteLine(ex.Message);
+                    Console.WriteLine(ex.StackTrace);
                 }
             } while (!wasListGrouped);
         }
 
         private static void TableBuilderHeader(string nameOfKey, string key, List<string> fieldNames)
         {
-            var header = new string('-', 170);
+            var header = new string('-', 165);
             var header2 = String.Format("|{0,40}|{1,40}|{2,40}|{3,40}", fieldNames[0], fieldNames[1], fieldNames[2], fieldNames[3]);
             Console.WriteLine($"{nameOfKey}: {key}");
             Console.WriteLine(header);
@@ -703,7 +723,6 @@ namespace InternshipFinalTaskLibrary
 
                 if (printList)
                 {
-
                     foreach (var b in booksOfUser)
                     {
                         b.PrintBookInfo();

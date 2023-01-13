@@ -5,8 +5,7 @@
         public DateTime YearOfBirth { get; set; }
         public DateTime SubTerm { get; set; }
 
-        public Subscriber(int id, string firstName, string lastName, DateTime yearOfBirth) :
-            base(id, firstName, lastName)
+        public Subscriber(int id, string firstName, string lastName, DateTime yearOfBirth) : base(id, firstName, lastName)
         {
             YearOfBirth = yearOfBirth;
             SubTerm = (DateTime.Now).AddYears(1);
