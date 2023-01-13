@@ -30,7 +30,7 @@ namespace InternshipFinalTaskLibrary
 
                     if (actionFound)
                     {
-                        if (LoggedUser is not null)
+                        if (LoggedUser is not null && LoggedUser is Subscriber)
                         {
                             if ((LoggedUser as Subscriber).SubTerm > DateTime.Now)
                             {
@@ -278,15 +278,37 @@ namespace InternshipFinalTaskLibrary
             MenuBuilder(menuComponents, menuActions);
         }
 
-        private static void BooksCatalogue()
+        private static List<Book> BooksCatalogue()
         {
             var booksFile = pathToSolution + @"json\books.json";
             var listOfBooks = JsonSerializer.Deserialize<List<Book>>(File.ReadAllText(booksFile), jsonOptions);
 
-            foreach (var b in listOfBooks)
+            if (listOfBooks.Any())
             {
-                b.PrintBookInfo();
+                if (LoggedUser is Librarian)
+                {
+                    foreach (var b in listOfBooks)
+                    {
+                        b.PrintBookInfo();
+                    }
+                }
+                else
+                {
+                    var booksAgeLimit = listOfBooks.
+                        Where(i => (int)i.AgeCategory < (int)(DateTime.Now - (LoggedUser as Subscriber).YearOfBirth).TotalDays / 365).ToList();
+
+                    foreach (var b in booksAgeLimit)
+                    {
+                        b.PrintBookInfo();
+                    }
+                }
             }
+            else
+            {
+                Console.WriteLine("There is no books in library.");
+            }
+
+            return listOfBooks;
         }
 
         private static void BooksCatalogueMenu()
@@ -315,7 +337,7 @@ namespace InternshipFinalTaskLibrary
 
             if (!checkUniqueBook.Any())
             {
-                Book newBook = new(listOfBooks.Last().Id + 1, category, author, title, year, qty);
+                Book newBook = new(listOfBooks.Any() ? listOfBooks.Last().Id + 1 : 1, category, author, title, year, qty);
                 listOfBooks.Add(newBook);
                 var jsonString = JsonSerializer.Serialize(listOfBooks, jsonOptions);
                 File.WriteAllText(booksFile, jsonString);
@@ -464,7 +486,7 @@ namespace InternshipFinalTaskLibrary
 
                                 foreach (var j in i)
                                 {
-                                    TableBuilderRow(j.Title, j.Author, j.Year.ToString(), j.Quantity.ToString());
+                                    TableBuilderRow(j.Title, j.Author, j.Year.Year.ToString(), j.Quantity.ToString());
                                 }
                             }
 
@@ -478,7 +500,7 @@ namespace InternshipFinalTaskLibrary
 
                                 foreach (var j in i)
                                 {
-                                    TableBuilderRow(j.Title, j.Year.ToString(), j.Quantity.ToString(), j.Category);
+                                    TableBuilderRow(j.Title, j.Year.Year.ToString(), j.Quantity.ToString(), j.Category);
                                 }
                             }
 
@@ -492,7 +514,7 @@ namespace InternshipFinalTaskLibrary
 
                                 foreach (var j in i)
                                 {
-                                    TableBuilderRow(j.Author, j.Year.ToString(), j.Quantity.ToString(), j.Category);
+                                    TableBuilderRow(j.Author, j.Year.Year.ToString(), j.Quantity.ToString(), j.Category);
                                 }
                             }
 
@@ -531,8 +553,8 @@ namespace InternshipFinalTaskLibrary
 
         private static void TableBuilderHeader(string nameOfKey, string key, List<string> fieldNames)
         {
-            var header = new string('-', 150);
-            var header2 = String.Format("|{0,35}|{1,35}|{2,35}|{3,35}", fieldNames[0], fieldNames[1], fieldNames[2], fieldNames[3]);
+            var header = new string('-', 170);
+            var header2 = String.Format("|{0,40}|{1,40}|{2,40}|{3,40}", fieldNames[0], fieldNames[1], fieldNames[2], fieldNames[3]);
             Console.WriteLine($"{nameOfKey}: {key}");
             Console.WriteLine(header);
             Console.WriteLine(header2);
@@ -541,7 +563,7 @@ namespace InternshipFinalTaskLibrary
 
         private static void TableBuilderRow(string field1, string field2, string field3, string field4)
         {
-            var output = String.Format("|{0,35}|{1,35}|{2,35}|{3,35}", field1, field2, field3, field4);
+            var output = String.Format("|{0,40}|{1,40}|{2,40}|{3,40}", field1, field2, field3, field4);
             Console.WriteLine(output);
         }
 
@@ -569,8 +591,10 @@ namespace InternshipFinalTaskLibrary
 
         private static void DeleteSub()
         {
-            var subsFile = pathToSolution + @"json\followersCredentials.json";
+            var subsFile = pathToSolution + @"json\followers.json";
+            var subsCredsFile = pathToSolution + @"json\followersCredentials.json";
             var subs = JsonSerializer.Deserialize<List<Subscriber>>(File.ReadAllText(subsFile), jsonOptions);
+            var subsCreds = JsonSerializer.Deserialize<List<SubscriberCredentials>>(File.ReadAllText(subsCredsFile), jsonOptions);
 
             if (subs.Any())
             {
@@ -590,9 +614,19 @@ namespace InternshipFinalTaskLibrary
 
             if (subMatch.Any())
             {
+                var subCredsMatch = subsCreds.Where(i => i.Id == userId).ToList();
+
+                if (RentedBooks(false, subMatch[0]).Any())
+                {
+                    ReturnAll(subMatch[0]);
+                }
+
                 subs.Remove(subMatch[0]);
-                var jsonString = JsonSerializer.Serialize(subs, jsonOptions);
-                File.WriteAllText(subsFile, jsonString);
+                subsCreds.Remove(subCredsMatch[0]);
+                var subsJson = JsonSerializer.Serialize(subs, jsonOptions);
+                var subsCredsJson = JsonSerializer.Serialize(subsCreds, jsonOptions);
+                File.WriteAllText(subsFile, subsJson);
+                File.WriteAllText(subsCredsFile, subsCredsJson);
                 Console.WriteLine("Subscriber successfully deleted");
             }
             else
@@ -645,13 +679,13 @@ namespace InternshipFinalTaskLibrary
             MainMenu(LoggedUser);
         }
 
-        private static void RentedBooks()
+        private static List<Book> RentedBooks(bool printList, User user)
         {
             var booksFile = pathToSolution + @"json\books.json";
             var rentedBooksFile = pathToSolution + @"json\rentedBooks.json";
             var listOfBooks = JsonSerializer.Deserialize<List<Book>>(File.ReadAllText(booksFile), jsonOptions);
             var rentedBooks = JsonSerializer.Deserialize<List<RentedBooks>>(File.ReadAllText(rentedBooksFile), jsonOptions);
-            var rentedBooksByUser = rentedBooks.Where(i => i.SubscriberId == LoggedUser.Id).ToList();
+            var rentedBooksByUser = rentedBooks.Where(i => i.SubscriberId == user.Id).ToList();
             var booksOfUser = new List<Book>();
 
             if (rentedBooksByUser.Any())
@@ -667,32 +701,43 @@ namespace InternshipFinalTaskLibrary
                     }
                 }
 
-                foreach (var b in booksOfUser)
+                if (printList)
                 {
-                    b.PrintBookInfo();
+
+                    foreach (var b in booksOfUser)
+                    {
+                        b.PrintBookInfo();
+                    }
                 }
+
+                return booksOfUser;
             }
             else
             {
-                Console.WriteLine("You don't have any rented books");
+                if (printList)
+                {
+                    Console.WriteLine("You don't have any rented books");
+                }
+
+                return booksOfUser;
             }
         }
 
         private static void RentedBooksMenu()
         {
-            RentedBooks();
+            RentedBooks(true,LoggedUser);
             Console.ReadKey();
             Console.Clear();
             MainMenu(LoggedUser);
         }
 
-        private static void ReturnBook(int bookId)
+        private static void ReturnBook(int bookId, User user)
         {
             var booksFile = pathToSolution + @"json\books.json";
             var rentedBooksFile = pathToSolution + @"json\rentedBooks.json";
             var listOfBooks = JsonSerializer.Deserialize<List<Book>>(File.ReadAllText(booksFile), jsonOptions);
             var rentedBooks = JsonSerializer.Deserialize<List<RentedBooks>>(File.ReadAllText(rentedBooksFile), jsonOptions);
-            var rentedBooksByUser = rentedBooks.Where(i => i.SubscriberId == LoggedUser.Id).ToList();
+            var rentedBooksByUser = rentedBooks.Where(i => i.SubscriberId == user.Id).ToList();
             var booksOfUser = new List<Book>();
 
             foreach (var b in listOfBooks)
@@ -729,56 +774,44 @@ namespace InternshipFinalTaskLibrary
             }
             else
             {
-                Console.WriteLine("This books is not rented");
+                Console.WriteLine("This book is not rented");
             }
         }
 
         private static void ReturnBookMenu()
         {
-            RentedBooks();
+            RentedBooks(true,LoggedUser);
             Console.WriteLine("Enter book ID:");
             var bookId = int.Parse(Console.ReadLine());
-            ReturnBook(bookId);
+            ReturnBook(bookId,LoggedUser);
             Console.ReadKey();
             Console.Clear();
             MainMenu(LoggedUser);
         }
 
+        private static void ReturnAll(User user)
+        {
+            var booksOfUser = RentedBooks(false, user);
+
+            foreach (var b in booksOfUser)
+            {
+                ReturnBook(b.Id,user);
+            }
+        }
+
         private static void CancelSubscriptionMenu()
         {
-            var booksFile = pathToSolution + @"json\books.json";
-            var rentedBooksFile = pathToSolution + @"json\rentedBooks.json";
-            var listOfBooks = JsonSerializer.Deserialize<List<Book>>(File.ReadAllText(booksFile), jsonOptions);
-            var rentedBooks = JsonSerializer.Deserialize<List<RentedBooks>>(File.ReadAllText(rentedBooksFile), jsonOptions);
-            var rentedBooksByUser = rentedBooks.Where(i => i.SubscriberId == LoggedUser.Id).ToList();
-            var booksOfUser = new List<Book>();
-
-            foreach (var b in listOfBooks)
-            {
-                foreach (var r in rentedBooksByUser)
-                {
-                    if (r.BookId == b.Id)
-                    {
-                        booksOfUser.Add(b);
-                    }
-                }
-            }
-
-            if (booksOfUser.Any())
+            if (RentedBooks(false,LoggedUser).Any())
             {
                 Console.WriteLine("Your subscription will be canceled after returning following books:");
-                RentedBooks();
+                RentedBooks(true,LoggedUser);
                 Console.WriteLine("Choose an option:\n1. Return all\n2. Exit");
                 var menuOption = int.Parse(Console.ReadLine());
 
                 switch (menuOption)
                 {
                     case 1:
-                        foreach(var b in booksOfUser)
-                        {
-                            ReturnBook(b.Id);
-                        }
-
+                        ReturnAll(LoggedUser);
                         Console.WriteLine("All books have been successfully returned");
                         CancelSubscription();
                         Console.WriteLine("Your subscription has been successfully canceled");
@@ -834,6 +867,7 @@ namespace InternshipFinalTaskLibrary
                 case 1:
                     var subIndex = subsList.FindIndex(i => i.Id == LoggedUser.Id);
                     subsList[subIndex].SubTerm = subsList[subIndex].SubTerm.AddYears(1);
+                    (LoggedUser as Subscriber).SubTerm = (LoggedUser as Subscriber).SubTerm.AddYears(1);
                     var subsJson = JsonSerializer.Serialize(subsList, jsonOptions);
                     File.WriteAllText(subsFile, subsJson);
                     Console.WriteLine("Your subscription is renewed. Press any key to return to main menu.");
