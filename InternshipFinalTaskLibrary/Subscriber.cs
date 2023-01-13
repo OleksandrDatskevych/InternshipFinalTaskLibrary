@@ -13,7 +13,7 @@
 
         public void PrintSubInfo()
         {
-            Func<string> subCheck = () => SubTerm > DateTime.Now ? $"Subscription is valid until {SubTerm}" : "Subscription is not valid";
+            string subCheck() => SubTerm > DateTime.Now ? $"Subscription is valid until {SubTerm}" : "Subscription is not valid";
             Console.WriteLine($"ID: {Id} - {FirstName} {LastName} {YearOfBirth.Year} {subCheck()}");
         }
     }

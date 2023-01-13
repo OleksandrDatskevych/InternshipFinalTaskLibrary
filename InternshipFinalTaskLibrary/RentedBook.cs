@@ -1,11 +1,11 @@
 ﻿namespace InternshipFinalTaskLibrary
 {
-    internal class RentedBooks
+    internal class RentedBook
     {
         public int BookId { get; set; }
         public int SubscriberId { get; set; }
 
-        public RentedBooks(int bookId, int subscriberId)
+        public RentedBook(int bookId, int subscriberId)
         {
             BookId = bookId;
             SubscriberId = subscriberId;

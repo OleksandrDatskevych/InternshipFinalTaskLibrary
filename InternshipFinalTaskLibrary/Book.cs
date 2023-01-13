@@ -2,7 +2,7 @@
 {
     internal class Book
     {
-        public enum AgeCat
+        public enum AgeCategory
         {
             Child = 3,
             Education = 6,
@@ -16,7 +16,7 @@
         public string? Title { get; set; }
         public DateTime Year { get; set; }
         public int Quantity { get; set; }
-        public AgeCat AgeCategory { get; set; }
+        public AgeCategory AgeLimit { get; set; }
 
         public Book(int id, string category, string author, string title, DateTime year, int quantity)
         {
@@ -27,13 +27,13 @@
             Year = year;
             Quantity = quantity;
 
-            if (Enum.IsDefined(typeof(AgeCat),category))
+            if (Enum.IsDefined(typeof(AgeCategory),category))
             {
-                AgeCategory = Enum.Parse<AgeCat>(category);
+                AgeLimit = Enum.Parse<AgeCategory>(category);
             }
             else
             {
-                AgeCategory = AgeCat.Horror;
+                AgeLimit = AgeCategory.Horror;
             }
         }
 
