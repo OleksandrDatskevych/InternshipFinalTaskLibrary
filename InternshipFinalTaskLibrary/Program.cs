@@ -1,4 +1,4 @@
-﻿using InternshipFinalTaskLibrary;
+﻿using Library;
 
 internal class Program
 {

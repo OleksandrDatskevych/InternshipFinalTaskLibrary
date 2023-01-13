@@ -1,4 +1,4 @@
-﻿namespace InternshipFinalTaskLibrary
+﻿namespace Library.BookClasses
 {
     internal class Book
     {
@@ -27,7 +27,7 @@
             Year = year;
             Quantity = quantity;
 
-            if (Enum.IsDefined(typeof(AgeCategory),category))
+            if (Enum.IsDefined(typeof(AgeCategory), category))
             {
                 AgeLimit = Enum.Parse<AgeCategory>(category);
             }

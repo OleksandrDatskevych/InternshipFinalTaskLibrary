@@ -1,4 +1,4 @@
-﻿namespace InternshipFinalTaskLibrary
+﻿namespace Library.UserClasses
 {
     internal class Subscriber : User
     {
@@ -8,7 +8,7 @@
         public Subscriber(int id, string firstName, string lastName, DateTime yearOfBirth) : base(id, firstName, lastName)
         {
             YearOfBirth = yearOfBirth;
-            SubTerm = (DateTime.Now).AddYears(1);
+            SubTerm = DateTime.Now.AddYears(1);
         }
 
         public void PrintSubInfo()

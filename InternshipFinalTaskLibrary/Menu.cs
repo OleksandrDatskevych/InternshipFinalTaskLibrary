@@ -1,7 +1,10 @@
 ﻿using System.Text.Json;
 using System.Text.RegularExpressions;
+using Library.BookClasses;
+using Library.CredentialsClasses;
+using Library.UserClasses;
 
-namespace InternshipFinalTaskLibrary
+namespace Library
 {
     internal static class Menu
     {

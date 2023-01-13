@@ -1,4 +1,4 @@
-﻿namespace InternshipFinalTaskLibrary
+﻿namespace Library.BookClasses
 {
     internal class RentedBook
     {

@@ -1,4 +1,4 @@
-﻿namespace InternshipFinalTaskLibrary
+﻿namespace Library.CredentialsClasses
 {
     internal abstract class Credentials
     {

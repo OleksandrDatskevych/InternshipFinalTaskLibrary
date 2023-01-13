@@ -1,4 +1,4 @@
-﻿namespace InternshipFinalTaskLibrary
+﻿namespace Library.UserClasses
 {
     internal abstract class User
     {
