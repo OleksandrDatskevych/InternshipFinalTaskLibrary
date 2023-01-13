@@ -30,7 +30,29 @@ namespace InternshipFinalTaskLibrary
 
                     if (actionFound)
                     {
-                        menuActions[option]();
+                        if (LoggedUser is not null)
+                        {
+                            if ((LoggedUser as Subscriber).SubTerm > DateTime.Now)
+                            {
+                                menuActions[option]();
+                            }
+                            else
+                            {
+                                if (menuActions[option] != LogOut)
+                                {
+                                    Console.WriteLine("Please renew subscription");
+                                    RenewSubscription();
+                                }
+                                else
+                                {
+                                    menuActions[option]();
+                                }
+                            }
+                        }
+                        else
+                        {
+                            menuActions[option]();
+                        }
                     }
                     else
                     {
@@ -248,8 +270,8 @@ namespace InternshipFinalTaskLibrary
                 { 1, BooksCatalogueMenu },
                 { 2, RentBook },
                 { 3, RentedBooksMenu },
-                { 4, ReturnBook },
-                { 5, CancelSubscription },
+                { 4, ReturnBookMenu },
+                { 5, CancelSubscriptionMenu },
                 { 6, LogOut }
             };
             var menuComponents = new List<string>() { "Catalogue", "Rent a book", "Rented books", "Return book", "Cancel subscription", "Log out" };
@@ -289,11 +311,21 @@ namespace InternshipFinalTaskLibrary
             var year = new DateTime(int.Parse(Console.ReadLine()), 1, 1);
             Console.WriteLine("Enter quantity of books:");
             var qty = int.Parse(Console.ReadLine());
-            Book newBook = new(listOfBooks.Last().Id + 1, category, author, title, year, qty);
-            listOfBooks.Add(newBook);
-            var jsonString = JsonSerializer.Serialize(listOfBooks, jsonOptions);
-            File.WriteAllText(booksFile, jsonString);
-            Console.WriteLine("Book successfully added.");
+            var checkUniqueBook = listOfBooks.Where(i => i.Title == title).Where(i => i.Author == author);
+
+            if (!checkUniqueBook.Any())
+            {
+                Book newBook = new(listOfBooks.Last().Id + 1, category, author, title, year, qty);
+                listOfBooks.Add(newBook);
+                var jsonString = JsonSerializer.Serialize(listOfBooks, jsonOptions);
+                File.WriteAllText(booksFile, jsonString);
+                Console.WriteLine("Book successfully added.");
+            }
+            else
+            {
+                Console.WriteLine($"There's already book with title {title} by {author} in the library.");
+            }
+
             Console.ReadKey();
             Console.Clear();
             MainMenu(LoggedUser);
@@ -597,11 +629,11 @@ namespace InternshipFinalTaskLibrary
                     var bookIndex = listOfBooks.FindIndex(i => i.Id == foundBook[0].Id);
                     listOfBooks[bookIndex].Quantity--;
                     Console.WriteLine($"Book {foundBook[0].Title} successfully rented");
+                    var booksJson = JsonSerializer.Serialize(listOfBooks, jsonOptions);
+                    var rentedBooksJson = JsonSerializer.Serialize(rentedBooks, jsonOptions);
+                    File.WriteAllText(booksFile, booksJson);
+                    File.WriteAllText(rentedBooksFile, rentedBooksJson);
                 }
-                var booksJson = JsonSerializer.Serialize(listOfBooks, jsonOptions);
-                var rentedBooksJson = JsonSerializer.Serialize(rentedBooks, jsonOptions);
-                File.WriteAllText(booksFile, booksJson);
-                File.WriteAllText(rentedBooksFile, rentedBooksJson);
             }
             else
             {
@@ -622,20 +654,27 @@ namespace InternshipFinalTaskLibrary
             var rentedBooksByUser = rentedBooks.Where(i => i.SubscriberId == LoggedUser.Id).ToList();
             var booksOfUser = new List<Book>();
 
-            foreach (var b in listOfBooks)
+            if (rentedBooksByUser.Any())
             {
-                foreach (var r in rentedBooksByUser)
+                foreach (var b in listOfBooks)
                 {
-                    if (r.BookId == b.Id)
+                    foreach (var r in rentedBooksByUser)
                     {
-                        booksOfUser.Add(b);
+                        if (r.BookId == b.Id)
+                        {
+                            booksOfUser.Add(b);
+                        }
                     }
                 }
-            }
 
-            foreach (var b in booksOfUser)
+                foreach (var b in booksOfUser)
+                {
+                    b.PrintBookInfo();
+                }
+            }
+            else
             {
-                b.PrintBookInfo();
+                Console.WriteLine("You don't have any rented books");
             }
         }
 
@@ -647,7 +686,7 @@ namespace InternshipFinalTaskLibrary
             MainMenu(LoggedUser);
         }
 
-        private static void ReturnBook()
+        private static void ReturnBook(int bookId)
         {
             var booksFile = pathToSolution + @"json\books.json";
             var rentedBooksFile = pathToSolution + @"json\rentedBooks.json";
@@ -667,32 +706,154 @@ namespace InternshipFinalTaskLibrary
                 }
             }
 
-            RentedBooks();
-            Console.WriteLine("Enter book ID:");
-            var bookId = int.Parse(Console.ReadLine());
-            var foundBook = booksOfUser.Where(i => i.Id == bookId).ToList();
-
-            if (foundBook.Any())
+            if (booksOfUser.Where(i => i.Id == bookId).Any())
             {
                 var rentedBookIndex = rentedBooks.FindIndex(i => i.BookId == bookId);
-                rentedBooks.RemoveAt(rentedBookIndex);
+
+                if (rentedBookIndex != -1)
+                {
+                    rentedBooks.RemoveAt(rentedBookIndex);
+                }
+                else
+                {
+                    Console.WriteLine("There's no book with such ID");
+                }
+
                 var bookIndex = listOfBooks.FindIndex(i => i.Id == bookId);
                 listOfBooks[bookIndex].Quantity++;
                 Console.WriteLine($"Book {listOfBooks[bookIndex].Title} successfully returned");
+                var booksJson = JsonSerializer.Serialize(listOfBooks, jsonOptions);
+                var rentedBooksJson = JsonSerializer.Serialize(rentedBooks, jsonOptions);
+                File.WriteAllText(booksFile, booksJson);
+                File.WriteAllText(rentedBooksFile, rentedBooksJson);
             }
             else
             {
                 Console.WriteLine("This books is not rented");
             }
+        }
 
+        private static void ReturnBookMenu()
+        {
+            RentedBooks();
+            Console.WriteLine("Enter book ID:");
+            var bookId = int.Parse(Console.ReadLine());
+            ReturnBook(bookId);
             Console.ReadKey();
             Console.Clear();
             MainMenu(LoggedUser);
         }
 
-        private static void CancelSubscription()
+        private static void CancelSubscriptionMenu()
         {
-            throw new NotImplementedException();
+            var booksFile = pathToSolution + @"json\books.json";
+            var rentedBooksFile = pathToSolution + @"json\rentedBooks.json";
+            var listOfBooks = JsonSerializer.Deserialize<List<Book>>(File.ReadAllText(booksFile), jsonOptions);
+            var rentedBooks = JsonSerializer.Deserialize<List<RentedBooks>>(File.ReadAllText(rentedBooksFile), jsonOptions);
+            var rentedBooksByUser = rentedBooks.Where(i => i.SubscriberId == LoggedUser.Id).ToList();
+            var booksOfUser = new List<Book>();
+
+            foreach (var b in listOfBooks)
+            {
+                foreach (var r in rentedBooksByUser)
+                {
+                    if (r.BookId == b.Id)
+                    {
+                        booksOfUser.Add(b);
+                    }
+                }
+            }
+
+            if (booksOfUser.Any())
+            {
+                Console.WriteLine("Your subscription will be canceled after returning following books:");
+                RentedBooks();
+                Console.WriteLine("Choose an option:\n1. Return all\n2. Exit");
+                var menuOption = int.Parse(Console.ReadLine());
+
+                switch (menuOption)
+                {
+                    case 1:
+                        foreach(var b in booksOfUser)
+                        {
+                            ReturnBook(b.Id);
+                        }
+
+                        Console.WriteLine("All books have been successfully returned");
+                        CancelSubscription();
+                        Console.WriteLine("Your subscription has been successfully canceled");
+                        Console.ReadKey();
+                        LogOut();
+                        break;
+                    case 2:
+                        Console.Clear();
+                        MainMenu(LoggedUser);
+                        break;
+                    default:
+                        Console.WriteLine("Input error. Press any key to return to main menu...");
+                        Console.ReadKey();
+                        Console.Clear();
+                        MainMenu(LoggedUser);
+                        break;
+                }
+            }
+            else
+            {
+                CancelSubscription();
+                Console.WriteLine("Your subscription has been successfully canceled");
+                Console.ReadKey();
+                LogOut();
+            }
+
+            static void CancelSubscription()
+            {
+                var subsFile = pathToSolution + @"json\followers.json";
+                var subsCredsFile = pathToSolution + @"json\followersCredentials.json";
+                var subsList = JsonSerializer.Deserialize<List<Subscriber>>(File.ReadAllText(subsFile), jsonOptions);
+                var subsCredsList = JsonSerializer.Deserialize<List<SubscriberCredentials>>(File.ReadAllText(subsCredsFile), jsonOptions);
+                var subIndex = subsList.FindIndex(i => i.Id == LoggedUser.Id);
+                var subCredsIndex = subsCredsList.FindIndex(i => i.Id == LoggedUser.Id);
+                subsList.RemoveAt(subIndex);
+                subsCredsList.RemoveAt(subCredsIndex);
+                var subsJson = JsonSerializer.Serialize(subsList, jsonOptions);
+                var subsCredsJson = JsonSerializer.Serialize(subsCredsList, jsonOptions);
+                File.WriteAllText(subsFile, subsJson);
+                File.WriteAllText(subsCredsFile, subsCredsJson);
+            }
+        }
+
+        private static void RenewSubscription()
+        {
+            var subsFile = pathToSolution + @"json\followers.json";
+            var subsList = JsonSerializer.Deserialize<List<Subscriber>>(File.ReadAllText(subsFile), jsonOptions);
+            Console.WriteLine("Do you want to renew subscription?\n1. Yes\n2. No");
+            var menuOption = int.Parse(Console.ReadLine());
+
+            switch (menuOption)
+            {
+                case 1:
+                    var subIndex = subsList.FindIndex(i => i.Id == LoggedUser.Id);
+                    subsList[subIndex].SubTerm = subsList[subIndex].SubTerm.AddYears(1);
+                    var subsJson = JsonSerializer.Serialize(subsList, jsonOptions);
+                    File.WriteAllText(subsFile, subsJson);
+                    Console.WriteLine("Your subscription is renewed. Press any key to return to main menu.");
+                    Console.ReadKey();
+                    Console.Clear();
+                    MainMenu(LoggedUser);
+                    break;
+                case 2:
+                    Console.WriteLine("Press any key to return to main menu.");
+                    Console.ReadKey();
+                    Console.Clear();
+                    MainMenu(LoggedUser);
+                    break;
+                default:
+                    Console.WriteLine("Input error. Press any key to return to main menu.");
+                    Console.ReadKey();
+                    Console.Clear();
+                    MainMenu(LoggedUser);
+                    break;
+            }
         }
 
         private static string Cipher(string str)
