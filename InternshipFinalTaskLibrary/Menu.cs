@@ -10,7 +10,19 @@ namespace Library
     {
         private static readonly JsonSerializerOptions _jsonOptions = new() { WriteIndented = true, AllowTrailingCommas = true };
         private static readonly string _pathToSolution = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\..\..\");
-        
+        private static readonly string subsFile = _pathToSolution + @"json\followers.json";
+        private static readonly string libsFile = _pathToSolution + @"json\librarians.json";
+        private static readonly string subsCredsFile = _pathToSolution + @"json\followersCredentials.json";
+        private static readonly string libsCredsFile = _pathToSolution + @"json\librariansCredentials.json";
+        private static readonly string booksFile = _pathToSolution + @"json\books.json";
+        private static readonly string rentedBooksFile = _pathToSolution + @"json\rentedBooks.json";
+        private static List<Subscriber> subs = JsonSerializer.Deserialize<List<Subscriber>>(File.ReadAllText(subsFile), _jsonOptions);
+        private static List<Librarian> libs = JsonSerializer.Deserialize<List<Librarian>>(File.ReadAllText(libsFile), _jsonOptions);
+        private static List<SubscriberCredentials> subsCreds = JsonSerializer.Deserialize<List<SubscriberCredentials>>(File.ReadAllText(subsCredsFile), _jsonOptions);
+        private static List<LibrarianCredentials> libsCreds = JsonSerializer.Deserialize<List<LibrarianCredentials>>(File.ReadAllText(libsCredsFile), _jsonOptions);
+        private static List<Book> listOfBooks = JsonSerializer.Deserialize<List<Book>>(File.ReadAllText(booksFile), _jsonOptions);
+        private static List<RentedBook> rentedBooks = JsonSerializer.Deserialize<List<RentedBook>>(File.ReadAllText(rentedBooksFile), _jsonOptions);
+
         private static User? LoggedUser { get; set; }
 
         public static void Start()
@@ -49,6 +61,10 @@ namespace Library
                     Console.WriteLine("Please renew subscription");
                     RenewSubscription();
                 }
+                else
+                {
+                    menuActions[option]();
+                }
             }
             else
             {
@@ -58,14 +74,6 @@ namespace Library
 
         private static void LoginMenu()
         {
-            var subsFile = _pathToSolution + @"json\followers.json";
-            var libsFile = _pathToSolution + @"json\librarians.json";
-            var subsCredFile = _pathToSolution + @"json\followersCredentials.json";
-            var libsCredFile = _pathToSolution + @"json\librariansCredentials.json";
-            var subs = JsonSerializer.Deserialize<List<Subscriber>>(File.ReadAllText(subsFile), _jsonOptions);
-            var libs = JsonSerializer.Deserialize<List<Librarian>>(File.ReadAllText(libsFile), _jsonOptions);
-            var subsCreds = JsonSerializer.Deserialize<List<SubscriberCredentials>>(File.ReadAllText(subsCredFile), _jsonOptions);
-            var libsCreds = JsonSerializer.Deserialize<List<LibrarianCredentials>>(File.ReadAllText(libsCredFile), _jsonOptions);
             var userFound = false;
 
             do
@@ -106,13 +114,7 @@ namespace Library
         }
 
         private static void SubscribeMenu()
-        {;
-            var subsCredsFile = _pathToSolution + @"json\followersCredentials.json";
-            var libsCredsFile = _pathToSolution + @"json\librariansCredentials.json";
-            var subsFile = _pathToSolution + @"json\followers.json";
-            var subsCreds = JsonSerializer.Deserialize<List<SubscriberCredentials>>(File.ReadAllText(subsCredsFile), _jsonOptions);
-            var libsCreds = JsonSerializer.Deserialize<List<LibrarianCredentials>>(File.ReadAllText(libsCredsFile), _jsonOptions);
-            var subs = JsonSerializer.Deserialize<List<Subscriber>>(File.ReadAllText(subsFile), _jsonOptions);
+        {
             var userCreds = subsCreds
                 .ConvertAll(i => i as Credentials)
                 .Union(libsCreds.ConvertAll(i => i as Credentials));
@@ -258,9 +260,6 @@ namespace Library
 
         private static List<Book> BooksCatalogue()
         {
-            var booksFile = _pathToSolution + @"json\books.json";
-            var listOfBooks = JsonSerializer.Deserialize<List<Book>>(File.ReadAllText(booksFile), _jsonOptions);
-
             if (listOfBooks.Any())
             {
                 if (LoggedUser is Librarian)
@@ -302,8 +301,6 @@ namespace Library
 
         private static void AddBook()
         {
-            var booksFile = _pathToSolution + @"json\books.json";
-            var listOfBooks = JsonSerializer.Deserialize<List<Book>>(File.ReadAllText(booksFile), _jsonOptions);
             Console.WriteLine("Enter book category:");
             var category = Console.ReadLine();
             Console.WriteLine("Enter author:");
@@ -336,10 +333,6 @@ namespace Library
 
         private static void DeleteBook()
         {
-            var booksFile = _pathToSolution + @"json\books.json";
-            var rentedBooksFile = _pathToSolution + @"json\rentedBooks.json";
-            var listOfBooks = JsonSerializer.Deserialize<List<Book>>(File.ReadAllText(booksFile), _jsonOptions);
-            var rentedBooks = JsonSerializer.Deserialize<List<RentedBook>>(File.ReadAllText(rentedBooksFile), _jsonOptions);
             BooksCatalogue();
             var bookId = ParseWithPrompt("Enter book ID to delete:");
             var idMatch = listOfBooks.Where(i => i.Id == bookId).ToList();
@@ -349,8 +342,8 @@ namespace Library
                 if (rentedBooks.Where(i => i.BookId == bookId).Any())
                 {
                     var subsWithBook = rentedBooks
+                        .Where(i => i.BookId == bookId)
                         .Select(i => i.SubscriberId)
-                        .Order()
                         .ToList();
                     Console.Write($"Book with ID {bookId} cannot be deleted because it was rented by {subsWithBook.Count} users with following IDs:");
 
@@ -379,8 +372,6 @@ namespace Library
 
         private static void Sorting()
         {
-            var booksFile = _pathToSolution + @"json\books.json";
-            var listOfBooks = JsonSerializer.Deserialize<List<Book>>(File.ReadAllText(booksFile), _jsonOptions);
             var chosenOrder = ParseWithPrompt(1, 5, "Choose criterion to sort books:\n1. Category\n2. Author\n3. Title\n4. Year\n5. Quantity");
             var chosenCriterion = ParseWithPrompt(1, 2, "Choose sort order:\n1. Ascending\n2. Descending");
 
@@ -416,8 +407,6 @@ namespace Library
 
         private static void Grouping()
         {
-            var booksFile = _pathToSolution + @"json\books.json";
-            var listOfBooks = JsonSerializer.Deserialize<List<Book>>(File.ReadAllText(booksFile), _jsonOptions);
             var chosenCriterion = ParseWithPrompt(1, 4, "Choose criterion to group books:\n1. Category\n2. Author\n3. Title\n4. Year");
 
             switch (chosenCriterion)
@@ -497,15 +486,12 @@ namespace Library
 
         private static void TableBuilderRow(string field1, string field2, string field3, string field4)
         {
-            var output = String.Format("|{0,40}|{1,40}|{2,40}|{3,40}", field1, field2, field3, field4);
+            var output = string.Format("|{0,40}|{1,40}|{2,40}|{3,40}", field1, field2, field3, field4);
             Console.WriteLine(output);
         }
 
         private static void SubsList()
         {
-            var subsFile = _pathToSolution + @"json\followers.json";
-            var subs = JsonSerializer.Deserialize<List<Subscriber>>(File.ReadAllText(subsFile), _jsonOptions);
-
             if (subs.Any())
             {
                 foreach (var s in subs)
@@ -525,11 +511,6 @@ namespace Library
 
         private static void DeleteSub()
         {
-            var subsFile = _pathToSolution + @"json\followers.json";
-            var subsCredsFile = _pathToSolution + @"json\followersCredentials.json";
-            var subs = JsonSerializer.Deserialize<List<Subscriber>>(File.ReadAllText(subsFile), _jsonOptions);
-            var subsCreds = JsonSerializer.Deserialize<List<SubscriberCredentials>>(File.ReadAllText(subsCredsFile), _jsonOptions);
-
             if (subs.Any())
             {
                 foreach (var s in subs)
@@ -574,10 +555,6 @@ namespace Library
 
         private static void RentBook()
         {
-            var booksFile = _pathToSolution + @"json\books.json";
-            var rentedBooksFile = _pathToSolution + @"json\rentedBooks.json";
-            var listOfBooks = JsonSerializer.Deserialize<List<Book>>(File.ReadAllText(booksFile), _jsonOptions);
-            var rentedBooks = JsonSerializer.Deserialize<List<RentedBook>>(File.ReadAllText(rentedBooksFile), _jsonOptions);
             BooksCatalogue();
             var bookId = ParseWithPrompt("Enter book ID:");
             var foundBook = listOfBooks.Where(i => i.Id == bookId).ToList();
@@ -613,10 +590,6 @@ namespace Library
 
         private static List<Book> RentedBooks(bool printList, User user)
         {
-            var booksFile = _pathToSolution + @"json\books.json";
-            var rentedBooksFile = _pathToSolution + @"json\rentedBooks.json";
-            var listOfBooks = JsonSerializer.Deserialize<List<Book>>(File.ReadAllText(booksFile), _jsonOptions);
-            var rentedBooks = JsonSerializer.Deserialize<List<RentedBook>>(File.ReadAllText(rentedBooksFile), _jsonOptions);
             var rentedBooksByUser = rentedBooks.Where(i => i.SubscriberId == user.Id).ToList();
             var booksOfUser = new List<Book>();
 
@@ -664,10 +637,6 @@ namespace Library
 
         private static void ReturnBook(int bookId, User user)
         {
-            var booksFile = _pathToSolution + @"json\books.json";
-            var rentedBooksFile = _pathToSolution + @"json\rentedBooks.json";
-            var listOfBooks = JsonSerializer.Deserialize<List<Book>>(File.ReadAllText(booksFile), _jsonOptions);
-            var rentedBooks = JsonSerializer.Deserialize<List<RentedBook>>(File.ReadAllText(rentedBooksFile), _jsonOptions);
             var rentedBooksByUser = rentedBooks.Where(i => i.SubscriberId == user.Id).ToList();
             var booksOfUser = new List<Book>();
 
@@ -769,16 +738,12 @@ namespace Library
 
             static void CancelSubscription()
             {
-                var subsFile = _pathToSolution + @"json\followers.json";
-                var subsCredsFile = _pathToSolution + @"json\followersCredentials.json";
-                var subsList = JsonSerializer.Deserialize<List<Subscriber>>(File.ReadAllText(subsFile), _jsonOptions);
-                var subsCredsList = JsonSerializer.Deserialize<List<SubscriberCredentials>>(File.ReadAllText(subsCredsFile), _jsonOptions);
-                var subIndex = subsList.FindIndex(i => i.Id == LoggedUser.Id);
-                var subCredsIndex = subsCredsList.FindIndex(i => i.Id == LoggedUser.Id);
-                subsList.RemoveAt(subIndex);
-                subsCredsList.RemoveAt(subCredsIndex);
-                var subsJson = JsonSerializer.Serialize(subsList, _jsonOptions);
-                var subsCredsJson = JsonSerializer.Serialize(subsCredsList, _jsonOptions);
+                var subIndex = subs.FindIndex(i => i.Id == LoggedUser.Id);
+                var subCredsIndex = subsCreds.FindIndex(i => i.Id == LoggedUser.Id);
+                subs.RemoveAt(subIndex);
+                subsCreds.RemoveAt(subCredsIndex);
+                var subsJson = JsonSerializer.Serialize(subs, _jsonOptions);
+                var subsCredsJson = JsonSerializer.Serialize(subsCreds, _jsonOptions);
                 File.WriteAllText(subsFile, subsJson);
                 File.WriteAllText(subsCredsFile, subsCredsJson);
             }
@@ -786,17 +751,15 @@ namespace Library
 
         private static void RenewSubscription()
         {
-            var subsFile = _pathToSolution + @"json\followers.json";
-            var subsList = JsonSerializer.Deserialize<List<Subscriber>>(File.ReadAllText(subsFile), _jsonOptions);
             var menuOption = ParseWithPrompt(1, 2, "Do you want to renew subscription?\n1. Yes\n2. No");
 
             switch (menuOption)
             {
                 case 1:
-                    var subIndex = subsList.FindIndex(i => i.Id == LoggedUser.Id);
-                    subsList[subIndex].SubTerm = subsList[subIndex].SubTerm.AddYears(1);
+                    var subIndex = subs.FindIndex(i => i.Id == LoggedUser.Id);
+                    subs[subIndex].SubTerm = subs[subIndex].SubTerm.AddYears(1);
                     (LoggedUser as Subscriber).SubTerm = (LoggedUser as Subscriber).SubTerm.AddYears(1);
-                    var subsJson = JsonSerializer.Serialize(subsList, _jsonOptions);
+                    var subsJson = JsonSerializer.Serialize(subs, _jsonOptions);
                     File.WriteAllText(subsFile, subsJson);
                     Console.WriteLine("Your subscription is renewed. Press any key to return to main menu.");
                     Console.ReadKey();

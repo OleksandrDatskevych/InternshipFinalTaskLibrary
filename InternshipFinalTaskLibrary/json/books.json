@@ -6,7 +6,7 @@
     "Title": "It",
     "Year": "1986-01-01T00:00:00",
     "Quantity": 10,
-    "AgeCategory": 18
+    "AgeLimit": 18
   },
   {
     "Id": 2,
@@ -15,7 +15,7 @@
     "Title": "The Shining",
     "Year": "1977-01-01T00:00:00",
     "Quantity": 10,
-    "AgeCategory": 18
+    "AgeLimit": 18
   },
   {
     "Id": 3,
@@ -24,7 +24,7 @@
     "Title": "Interview with the Vampire",
     "Year": "1976-01-01T00:00:00",
     "Quantity": 10,
-    "AgeCategory": 18
+    "AgeLimit": 18
   },
   {
     "Id": 4,
@@ -33,7 +33,7 @@
     "Title": "Odyssey",
     "Year": "1719-01-01T00:00:00",
     "Quantity": 10,
-    "AgeCategory": 6
+    "AgeLimit": 6
   },
   {
     "Id": 5,
@@ -42,7 +42,7 @@
     "Title": "Leaves of Grass",
     "Year": "1855-01-01T00:00:00",
     "Quantity": 10,
-    "AgeCategory": 6
+    "AgeLimit": 6
   },
   {
     "Id": 6,
@@ -51,7 +51,7 @@
     "Title": "The Wild Fox of Yemen",
     "Year": "2021-01-01T00:00:00",
     "Quantity": 10,
-    "AgeCategory": 6
+    "AgeLimit": 6
   },
   {
     "Id": 7,
@@ -60,7 +60,7 @@
     "Title": "Educated",
     "Year": "2018-01-01T00:00:00",
     "Quantity": 10,
-    "AgeCategory": 6
+    "AgeLimit": 6
   },
   {
     "Id": 8,
@@ -69,7 +69,7 @@
     "Title": "Mindset: The New Psychology of Success",
     "Year": "2006-01-01T00:00:00",
     "Quantity": 10,
-    "AgeCategory": 6
+    "AgeLimit": 6
   },
   {
     "Id": 9,
@@ -78,7 +78,7 @@
     "Title": "Democracy and Education",
     "Year": "1916-01-01T00:00:00",
     "Quantity": 10,
-    "AgeCategory": 6
+    "AgeLimit": 6
   },
   {
     "Id": 10,
@@ -87,7 +87,7 @@
     "Title": "Alice\u0027s Adventures in Wonderland",
     "Year": "1865-01-01T00:00:00",
     "Quantity": 10,
-    "AgeCategory": 3
+    "AgeLimit": 3
   },
   {
     "Id": 11,
@@ -96,7 +96,7 @@
     "Title": "Jabberwocky",
     "Year": "1871-01-01T00:00:00",
     "Quantity": 10,
-    "AgeCategory": 3
+    "AgeLimit": 3
   },
   {
     "Id": 12,
@@ -104,7 +104,7 @@
     "Author": "Lewis Carroll",
     "Title": "The Walrus and the Carpenter",
     "Year": "1871-01-01T00:00:00",
-    "Quantity": 7,
-    "AgeCategory": 3
+    "Quantity": 8,
+    "AgeLimit": 3
   }
 ]
