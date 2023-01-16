@@ -1,6 +1,6 @@
 ﻿namespace Library.CredentialsClasses
 {
-    internal abstract class Credentials
+    public abstract class Credentials
     {
         public int Id { get; set; }
         public string? Login { get; set; }

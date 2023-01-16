@@ -3,7 +3,7 @@ using Library.BookClasses;
 
 namespace Library
 {
-    internal static partial class Menu
+    public static partial class Menu
     {
         private static void LibMenu()
         {
@@ -43,16 +43,16 @@ namespace Library
             var title = Console.ReadLine();
             var year = new DateTime(ParseWithPrompt("Enter year of printing:"), 1, 1);
             var qty = ParseWithPrompt("Enter quantity of books:");
-            var checkUniqueBook = listOfBooks
+            var checkUniqueBook = _listOfBooks
                 .Where(i => i.Title == title)
                 .Where(i => i.Author == author);
 
             if (!checkUniqueBook.Any())
             {
-                Book newBook = new(listOfBooks.Any() ? listOfBooks.Last().Id + 1 : 1, category, author, title, year, qty);
-                listOfBooks.Add(newBook);
-                var jsonString = JsonSerializer.Serialize(listOfBooks, _jsonOptions);
-                File.WriteAllText(booksFile, jsonString);
+                Book newBook = new(_listOfBooks.Any() ? _listOfBooks.Last().Id + 1 : 1, category, author, title, year, qty);
+                _listOfBooks.Add(newBook);
+                var jsonString = JsonSerializer.Serialize(_listOfBooks, JsonOptions);
+                File.WriteAllText(BooksFile, jsonString);
                 Console.WriteLine("Book successfully added.");
             }
             else
@@ -69,13 +69,13 @@ namespace Library
         {
             BooksCatalogue();
             var bookId = ParseWithPrompt("Enter book ID to delete:");
-            var idMatch = listOfBooks.Where(i => i.Id == bookId).ToList();
+            var idMatch = _listOfBooks.Where(i => i.Id == bookId).ToList();
 
             if (idMatch.Any())
             {
-                if (rentedBooks.Where(i => i.BookId == bookId).Any())
+                if (_rentedBooks.Where(i => i.BookId == bookId).Any())
                 {
-                    var subsWithBook = rentedBooks
+                    var subsWithBook = _rentedBooks
                         .Where(i => i.BookId == bookId)
                         .Select(i => i.SubscriberId)
                         .ToList();
@@ -88,9 +88,9 @@ namespace Library
                 }
                 else
                 {
-                    listOfBooks.Remove(idMatch[0]);
-                    var jsonString = JsonSerializer.Serialize(listOfBooks, _jsonOptions);
-                    File.WriteAllText(booksFile, jsonString);
+                    _listOfBooks.Remove(idMatch[0]);
+                    var jsonString = JsonSerializer.Serialize(_listOfBooks, JsonOptions);
+                    File.WriteAllText(BooksFile, jsonString);
                     Console.WriteLine("Book successfully deleted");
                 }
             }
@@ -113,19 +113,19 @@ namespace Library
             {
                 1 => chosenOrder switch
                 {
-                    1 => listOfBooks.OrderBy(i => i.Category).ToList(),
-                    2 => listOfBooks.OrderBy(i => i.Author).ToList(),
-                    3 => listOfBooks.OrderBy(i => i.Title).ToList(),
-                    4 => listOfBooks.OrderBy(i => i.Year).ToList(),
-                    5 => listOfBooks.OrderBy(i => i.Quantity).ToList()
+                    1 => _listOfBooks.OrderBy(i => i.Category).ToList(),
+                    2 => _listOfBooks.OrderBy(i => i.Author).ToList(),
+                    3 => _listOfBooks.OrderBy(i => i.Title).ToList(),
+                    4 => _listOfBooks.OrderBy(i => i.Year).ToList(),
+                    5 => _listOfBooks.OrderBy(i => i.Quantity).ToList()
                 },
                 2 => chosenOrder switch
                 {
-                    1 => listOfBooks.OrderByDescending(i => i.Category).ToList(),
-                    2 => listOfBooks.OrderByDescending(i => i.Author).ToList(),
-                    3 => listOfBooks.OrderByDescending(i => i.Title).ToList(),
-                    4 => listOfBooks.OrderByDescending(i => i.Year).ToList(),
-                    5 => listOfBooks.OrderByDescending(i => i.Quantity).ToList()
+                    1 => _listOfBooks.OrderByDescending(i => i.Category).ToList(),
+                    2 => _listOfBooks.OrderByDescending(i => i.Author).ToList(),
+                    3 => _listOfBooks.OrderByDescending(i => i.Title).ToList(),
+                    4 => _listOfBooks.OrderByDescending(i => i.Year).ToList(),
+                    5 => _listOfBooks.OrderByDescending(i => i.Quantity).ToList()
                 }
             };
 
@@ -146,7 +146,7 @@ namespace Library
             switch (chosenCriterion)
             {
                 case 1:
-                    var result = listOfBooks.GroupBy(i => i.Category).OrderBy(i => i.Key);
+                    var result = _listOfBooks.GroupBy(i => i.Category).OrderBy(i => i.Key);
 
                     foreach (var i in result)
                     {
@@ -160,7 +160,7 @@ namespace Library
 
                     break;
                 case 2:
-                    result = listOfBooks.GroupBy(i => i.Author).OrderBy(i => i.Key);
+                    result = _listOfBooks.GroupBy(i => i.Author).OrderBy(i => i.Key);
 
                     foreach (var i in result)
                     {
@@ -174,7 +174,7 @@ namespace Library
 
                     break;
                 case 3:
-                    result = listOfBooks.GroupBy(i => i.Title).OrderBy(i => i.Key);
+                    result = _listOfBooks.GroupBy(i => i.Title).OrderBy(i => i.Key);
 
                     foreach (var i in result)
                     {
@@ -188,7 +188,7 @@ namespace Library
 
                     break;
                 case 4:
-                    result = listOfBooks.GroupBy(i => i.Year.Year.ToString()).OrderBy(i => i.Key);
+                    result = _listOfBooks.GroupBy(i => i.Year.Year.ToString()).OrderBy(i => i.Key);
 
                     foreach (var i in result)
                     {
@@ -210,9 +210,9 @@ namespace Library
 
         private static void SubsList()
         {
-            if (subs.Any())
+            if (_subs.Any())
             {
-                foreach (var s in subs)
+                foreach (var s in _subs)
                 {
                     s.PrintSubInfo();
                 }
@@ -229,9 +229,9 @@ namespace Library
 
         private static void DeleteSub()
         {
-            if (subs.Any())
+            if (_subs.Any())
             {
-                foreach (var s in subs)
+                foreach (var s in _subs)
                 {
                     s.PrintSubInfo();
                 }
@@ -242,23 +242,23 @@ namespace Library
             }
 
             var userId = ParseWithPrompt("Enter subscriber ID to delete:");
-            var subMatch = subs.Where(i => i.Id == userId).ToList();
+            var subMatch = _subs.Where(i => i.Id == userId).ToList();
 
             if (subMatch.Any())
             {
-                var subCredsMatch = subsCreds.Where(i => i.Id == userId).ToList();
+                var subCredsMatch = _subsCreds.Where(i => i.Id == userId).ToList();
 
                 if (RentedBooks(false, subMatch[0]).Any())
                 {
                     ReturnAll(subMatch[0]);
                 }
 
-                subs.Remove(subMatch[0]);
-                subsCreds.Remove(subCredsMatch[0]);
-                var subsJson = JsonSerializer.Serialize(subs, _jsonOptions);
-                var subsCredsJson = JsonSerializer.Serialize(subsCreds, _jsonOptions);
-                File.WriteAllText(subsFile, subsJson);
-                File.WriteAllText(subsCredsFile, subsCredsJson);
+                _subs.Remove(subMatch[0]);
+                _subsCreds.Remove(subCredsMatch[0]);
+                var subsJson = JsonSerializer.Serialize(_subs, JsonOptions);
+                var subsCredsJson = JsonSerializer.Serialize(_subsCreds, JsonOptions);
+                File.WriteAllText(SubsFile, subsJson);
+                File.WriteAllText(SubsCredsFile, subsCredsJson);
                 Console.WriteLine("Subscriber successfully deleted");
             }
             else

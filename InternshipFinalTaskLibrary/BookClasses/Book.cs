@@ -1,6 +1,6 @@
 ﻿namespace Library.BookClasses
 {
-    internal class Book
+    public class Book
     {
         public enum AgeCategory
         {

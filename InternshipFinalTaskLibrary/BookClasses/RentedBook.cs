@@ -1,6 +1,6 @@
 ﻿namespace Library.BookClasses
 {
-    internal class RentedBook
+    public class RentedBook
     {
         public int BookId { get; set; }
         public int SubscriberId { get; set; }

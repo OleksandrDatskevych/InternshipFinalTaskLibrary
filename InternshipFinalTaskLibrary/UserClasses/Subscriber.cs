@@ -1,6 +1,6 @@
 ﻿namespace Library.UserClasses
 {
-    internal class Subscriber : User
+    public class Subscriber : User
     {
         public DateTime YearOfBirth { get; set; }
         public DateTime SubTerm { get; set; }

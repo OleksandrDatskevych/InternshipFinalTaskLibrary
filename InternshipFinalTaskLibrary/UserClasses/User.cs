@@ -1,6 +1,6 @@
 ﻿namespace Library.UserClasses
 {
-    internal abstract class User
+    public abstract class User
     {
         public int Id { get; set; }
         public string? FirstName { get; set; }

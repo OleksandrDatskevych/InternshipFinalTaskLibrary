@@ -4,7 +4,7 @@ using Library.UserClasses;
 
 namespace Library
 {
-    internal static partial class Menu
+    public static partial class Menu
     {
         private static void SubMenu()
         {
@@ -34,25 +34,25 @@ namespace Library
         {
             BooksCatalogue();
             var bookId = ParseWithPrompt("Enter book ID:");
-            var foundBook = listOfBooks.Where(i => i.Id == bookId).ToList();
+            var foundBook = _listOfBooks.Where(i => i.Id == bookId).ToList();
 
             if (foundBook.Any())
             {
-                if (rentedBooks.Any(i => i.SubscriberId == LoggedUser.Id && i.BookId == foundBook[0].Id))
+                if (_rentedBooks.Any(i => i.SubscriberId == LoggedUser.Id && i.BookId == foundBook[0].Id))
                 {
                     Console.WriteLine("This book is already rented");
                 }
                 else
                 {
                     var newRentedBook = new RentedBook(foundBook[0].Id, LoggedUser.Id);
-                    rentedBooks.Add(newRentedBook);
-                    var bookIndex = listOfBooks.FindIndex(i => i.Id == foundBook[0].Id);
-                    listOfBooks[bookIndex].Quantity--;
+                    _rentedBooks.Add(newRentedBook);
+                    var bookIndex = _listOfBooks.FindIndex(i => i.Id == foundBook[0].Id);
+                    _listOfBooks[bookIndex].Quantity--;
                     Console.WriteLine($"Book {foundBook[0].Title} successfully rented");
-                    var booksJson = JsonSerializer.Serialize(listOfBooks, _jsonOptions);
-                    var rentedBooksJson = JsonSerializer.Serialize(rentedBooks, _jsonOptions);
-                    File.WriteAllText(booksFile, booksJson);
-                    File.WriteAllText(rentedBooksFile, rentedBooksJson);
+                    var booksJson = JsonSerializer.Serialize(_listOfBooks, JsonOptions);
+                    var rentedBooksJson = JsonSerializer.Serialize(_rentedBooks, JsonOptions);
+                    File.WriteAllText(BooksFile, booksJson);
+                    File.WriteAllText(RentedBooksFile, rentedBooksJson);
                 }
             }
             else
@@ -75,12 +75,12 @@ namespace Library
 
         private static List<Book> RentedBooks(bool printList, User user)
         {
-            var rentedBooksByUser = rentedBooks.Where(i => i.SubscriberId == user.Id).ToList();
+            var rentedBooksByUser = _rentedBooks.Where(i => i.SubscriberId == user.Id).ToList();
             var booksOfUser = new List<Book>();
 
             if (rentedBooksByUser.Any())
             {
-                foreach (var b in listOfBooks)
+                foreach (var b in _listOfBooks)
                 {
                     foreach (var r in rentedBooksByUser)
                     {
@@ -114,10 +114,10 @@ namespace Library
 
         private static void ReturnBook(int bookId, User user)
         {
-            var rentedBooksByUser = rentedBooks.Where(i => i.SubscriberId == user.Id).ToList();
+            var rentedBooksByUser = _rentedBooks.Where(i => i.SubscriberId == user.Id).ToList();
             var booksOfUser = new List<Book>();
 
-            foreach (var b in listOfBooks)
+            foreach (var b in _listOfBooks)
             {
                 foreach (var r in rentedBooksByUser)
                 {
@@ -130,24 +130,24 @@ namespace Library
 
             if (booksOfUser.Where(i => i.Id == bookId).Any())
             {
-                var rentedBookIndex = rentedBooks.FindIndex(i => i.BookId == bookId);
+                var rentedBookIndex = _rentedBooks.FindIndex(i => i.BookId == bookId);
 
                 if (rentedBookIndex != -1)
                 {
-                    rentedBooks.RemoveAt(rentedBookIndex);
+                    _rentedBooks.RemoveAt(rentedBookIndex);
                 }
                 else
                 {
                     Console.WriteLine("There's no book with such ID");
                 }
 
-                var bookIndex = listOfBooks.FindIndex(i => i.Id == bookId);
-                listOfBooks[bookIndex].Quantity++;
-                Console.WriteLine($"Book {listOfBooks[bookIndex].Title} successfully returned");
-                var booksJson = JsonSerializer.Serialize(listOfBooks, _jsonOptions);
-                var rentedBooksJson = JsonSerializer.Serialize(rentedBooks, _jsonOptions);
-                File.WriteAllText(booksFile, booksJson);
-                File.WriteAllText(rentedBooksFile, rentedBooksJson);
+                var bookIndex = _listOfBooks.FindIndex(i => i.Id == bookId);
+                _listOfBooks[bookIndex].Quantity++;
+                Console.WriteLine($"Book {_listOfBooks[bookIndex].Title} successfully returned");
+                var booksJson = JsonSerializer.Serialize(_listOfBooks, JsonOptions);
+                var rentedBooksJson = JsonSerializer.Serialize(_rentedBooks, JsonOptions);
+                File.WriteAllText(BooksFile, booksJson);
+                File.WriteAllText(RentedBooksFile, rentedBooksJson);
             }
             else
             {
@@ -215,14 +215,14 @@ namespace Library
 
             static void CancelSubscription()
             {
-                var subIndex = subs.FindIndex(i => i.Id == LoggedUser.Id);
-                var subCredsIndex = subsCreds.FindIndex(i => i.Id == LoggedUser.Id);
-                subs.RemoveAt(subIndex);
-                subsCreds.RemoveAt(subCredsIndex);
-                var subsJson = JsonSerializer.Serialize(subs, _jsonOptions);
-                var subsCredsJson = JsonSerializer.Serialize(subsCreds, _jsonOptions);
-                File.WriteAllText(subsFile, subsJson);
-                File.WriteAllText(subsCredsFile, subsCredsJson);
+                var subIndex = _subs.FindIndex(i => i.Id == LoggedUser.Id);
+                var subCredsIndex = _subsCreds.FindIndex(i => i.Id == LoggedUser.Id);
+                _subs.RemoveAt(subIndex);
+                _subsCreds.RemoveAt(subCredsIndex);
+                var subsJson = JsonSerializer.Serialize(_subs, JsonOptions);
+                var subsCredsJson = JsonSerializer.Serialize(_subsCreds, JsonOptions);
+                File.WriteAllText(SubsFile, subsJson);
+                File.WriteAllText(SubsCredsFile, subsCredsJson);
             }
         }
 
@@ -233,11 +233,11 @@ namespace Library
             switch (menuOption)
             {
                 case 1:
-                    var subIndex = subs.FindIndex(i => i.Id == LoggedUser.Id);
-                    subs[subIndex].SubTerm = subs[subIndex].SubTerm.AddYears(1);
+                    var subIndex = _subs.FindIndex(i => i.Id == LoggedUser.Id);
+                    _subs[subIndex].SubTerm = _subs[subIndex].SubTerm.AddYears(1);
                     (LoggedUser as Subscriber).SubTerm = (LoggedUser as Subscriber).SubTerm.AddYears(1);
-                    var subsJson = JsonSerializer.Serialize(subs, _jsonOptions);
-                    File.WriteAllText(subsFile, subsJson);
+                    var subsJson = JsonSerializer.Serialize(_subs, JsonOptions);
+                    File.WriteAllText(SubsFile, subsJson);
                     Console.WriteLine("Your subscription is renewed. Press any key to return to main menu.");
                     Console.ReadKey();
                     Console.Clear();

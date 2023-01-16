@@ -6,24 +6,24 @@ using Library.UserClasses;
 
 namespace Library
 {
-    internal static partial class Menu
+    public static partial class Menu
     {
-        private static readonly JsonSerializerOptions _jsonOptions = new() { WriteIndented = true, AllowTrailingCommas = true };
-        private static readonly string _pathToSolution = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\..\..\");
-        private static readonly string subsFile = _pathToSolution + @"json\followers.json";
-        private static readonly string libsFile = _pathToSolution + @"json\librarians.json";
-        private static readonly string subsCredsFile = _pathToSolution + @"json\followersCredentials.json";
-        private static readonly string libsCredsFile = _pathToSolution + @"json\librariansCredentials.json";
-        private static readonly string booksFile = _pathToSolution + @"json\books.json";
-        private static readonly string rentedBooksFile = _pathToSolution + @"json\rentedBooks.json";
-        private static List<Subscriber> subs = JsonSerializer.Deserialize<List<Subscriber>>(File.ReadAllText(subsFile), _jsonOptions);
-        private static List<Librarian> libs = JsonSerializer.Deserialize<List<Librarian>>(File.ReadAllText(libsFile), _jsonOptions);
-        private static List<SubscriberCredentials> subsCreds = 
-            JsonSerializer.Deserialize<List<SubscriberCredentials>>(File.ReadAllText(subsCredsFile), _jsonOptions);
-        private static List<LibrarianCredentials> libsCreds = 
-            JsonSerializer.Deserialize<List<LibrarianCredentials>>(File.ReadAllText(libsCredsFile), _jsonOptions);
-        private static List<Book> listOfBooks = JsonSerializer.Deserialize<List<Book>>(File.ReadAllText(booksFile), _jsonOptions);
-        private static List<RentedBook> rentedBooks = JsonSerializer.Deserialize<List<RentedBook>>(File.ReadAllText(rentedBooksFile), _jsonOptions);
+        private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true, AllowTrailingCommas = true };
+        private static readonly string PathToSolution = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\..\..\");
+        private static readonly string SubsFile = PathToSolution + @"json\followers.json";
+        private static readonly string LibsFile = PathToSolution + @"json\librarians.json";
+        private static readonly string SubsCredsFile = PathToSolution + @"json\followersCredentials.json";
+        private static readonly string LibsCredsFile = PathToSolution + @"json\librariansCredentials.json";
+        private static readonly string BooksFile = PathToSolution + @"json\books.json";
+        private static readonly string RentedBooksFile = PathToSolution + @"json\rentedBooks.json";
+        private static List<Subscriber> _subs = JsonSerializer.Deserialize<List<Subscriber>>(File.ReadAllText(SubsFile), JsonOptions);
+        private static List<Librarian> _libs = JsonSerializer.Deserialize<List<Librarian>>(File.ReadAllText(LibsFile), JsonOptions);
+        private static List<SubscriberCredentials> _subsCreds = 
+            JsonSerializer.Deserialize<List<SubscriberCredentials>>(File.ReadAllText(SubsCredsFile), JsonOptions);
+        private static List<LibrarianCredentials> _libsCreds = 
+            JsonSerializer.Deserialize<List<LibrarianCredentials>>(File.ReadAllText(LibsCredsFile), JsonOptions);
+        private static List<Book> _listOfBooks = JsonSerializer.Deserialize<List<Book>>(File.ReadAllText(BooksFile), JsonOptions);
+        private static List<RentedBook> _rentedBooks = JsonSerializer.Deserialize<List<RentedBook>>(File.ReadAllText(RentedBooksFile), JsonOptions);
 
         private static User? LoggedUser { get; set; }
 
@@ -85,9 +85,9 @@ namespace Library
                 var login = Console.ReadLine();
                 Console.WriteLine("Enter password:");
                 var password = PasswordInput();
-                var usersCreds = subsCreds
+                var usersCreds = _subsCreds
                     .ConvertAll(i => i as Credentials)
-                    .Union(libsCreds.ConvertAll(i => i as Credentials));
+                    .Union(_libsCreds.ConvertAll(i => i as Credentials));
                 var userCredsToLogin = usersCreds
                     .Where(i => i.Login == login)
                     .Where(i => i.Password == Cipher(password))
@@ -95,9 +95,9 @@ namespace Library
 
                 if (userCredsToLogin.Any())
                 {
-                    var users = subs
+                    var users = _subs
                         .ConvertAll(i => i as User)
-                        .Union(libs.ConvertAll(i => i as User))
+                        .Union(_libs.ConvertAll(i => i as User))
                         .ToList();
                     var userToLogin = users
                         .Where(i => i.Id == userCredsToLogin[0].Id)
@@ -117,9 +117,9 @@ namespace Library
 
         private static void SubscribeMenu()
         {
-            var userCreds = subsCreds
+            var userCreds = _subsCreds
                 .ConvertAll(i => i as Credentials)
-                .Union(libsCreds.ConvertAll(i => i as Credentials));
+                .Union(_libsCreds.ConvertAll(i => i as Credentials));
             var login = string.Empty;
 
             bool IsLoginValid(string l) => !string.IsNullOrEmpty(l) && l.Length >= 5 && l.Length <= 12;
@@ -165,14 +165,14 @@ namespace Library
                 var firstName = NameInput("First");
                 var lastName = NameInput("Last");
                 var yearOfBirth = new DateTime(ParseWithPrompt("Enter year of birth"), 1, 1);
-                var newSub = new Subscriber(subs.Any() ? subs.Last().Id + 1 : 1, firstName, lastName, yearOfBirth);
-                var newCreds = new SubscriberCredentials(subs.Any() ? subs.Last().Id + 1 : 1, login, Cipher(password));
-                subs.Add(newSub);
-                subsCreds.Add(newCreds);
-                var jsonSubsString = JsonSerializer.Serialize(subs, _jsonOptions);
-                var jsonSubsCredsString = JsonSerializer.Serialize(subsCreds, _jsonOptions);
-                File.WriteAllText(subsFile, jsonSubsString);
-                File.WriteAllText(subsCredsFile, jsonSubsCredsString);
+                var newSub = new Subscriber(_subs.Any() ? _subs.Last().Id + 1 : 1, firstName, lastName, yearOfBirth);
+                var newCreds = new SubscriberCredentials(_subs.Any() ? _subs.Last().Id + 1 : 1, login, Cipher(password));
+                _subs.Add(newSub);
+                _subsCreds.Add(newCreds);
+                var jsonSubsString = JsonSerializer.Serialize(_subs, JsonOptions);
+                var jsonSubsCredsString = JsonSerializer.Serialize(_subsCreds, JsonOptions);
+                File.WriteAllText(SubsFile, jsonSubsString);
+                File.WriteAllText(SubsCredsFile, jsonSubsCredsString);
                 Console.WriteLine("Subscription successfully completed.");
                 Console.ReadKey();
             }
@@ -210,13 +210,13 @@ namespace Library
 
         private static List<Book> BooksCatalogue()
         {
-            if (listOfBooks.Any())
+            if (_listOfBooks.Any())
             {
                 if (LoggedUser is Librarian)
                 {
-                    Console.WriteLine($"Total number of books: {listOfBooks.Count}");
+                    Console.WriteLine($"Total number of books: {_listOfBooks.Count}");
 
-                    foreach (var b in listOfBooks)
+                    foreach (var b in _listOfBooks)
                     {
                         b.PrintBookInfo();
                     }
@@ -224,7 +224,7 @@ namespace Library
                 else
                 {
                     var userAge = (int)(DateTime.Now - (LoggedUser as Subscriber).YearOfBirth).TotalDays / 365;
-                    var booksAgeLimit = listOfBooks.Where(i => (int)i.AgeLimit < userAge).ToList();
+                    var booksAgeLimit = _listOfBooks.Where(i => (int)i.AgeLimit < userAge).ToList();
                     Console.WriteLine($"Total number of books: {booksAgeLimit.Count}");
 
                     foreach (var b in booksAgeLimit)
@@ -238,7 +238,7 @@ namespace Library
                 Console.WriteLine("There is no books in library.");
             }
 
-            return listOfBooks;
+            return _listOfBooks;
         }
 
         private static void BooksCatalogueMenu()
@@ -306,6 +306,7 @@ namespace Library
             }
 
             Console.WriteLine();
+
             return password;
         }
 
