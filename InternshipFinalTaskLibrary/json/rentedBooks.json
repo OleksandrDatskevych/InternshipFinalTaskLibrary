@@ -1,0 +1,10 @@
+[
+  {
+    "BookId": 12,
+    "SubscriberId": 2
+  },
+  {
+    "BookId": 12,
+    "SubscriberId": 3
+  }
+]

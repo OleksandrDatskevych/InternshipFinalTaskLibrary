@@ -1,0 +1,110 @@
+[
+  {
+    "Id": 1,
+    "Category": "Horror",
+    "Author": "Stephen King",
+    "Title": "It",
+    "Year": "1986-01-01T00:00:00",
+    "Quantity": 10,
+    "AgeLimit": 18
+  },
+  {
+    "Id": 2,
+    "Category": "Horror",
+    "Author": "Stephen King",
+    "Title": "The Shining",
+    "Year": "1977-01-01T00:00:00",
+    "Quantity": 10,
+    "AgeLimit": 18
+  },
+  {
+    "Id": 3,
+    "Category": "Horror",
+    "Author": "Anne Rice",
+    "Title": "Interview with the Vampire",
+    "Year": "1976-01-01T00:00:00",
+    "Quantity": 10,
+    "AgeLimit": 18
+  },
+  {
+    "Id": 4,
+    "Category": "Poetry",
+    "Author": "Homer",
+    "Title": "Odyssey",
+    "Year": "1719-01-01T00:00:00",
+    "Quantity": 10,
+    "AgeLimit": 6
+  },
+  {
+    "Id": 5,
+    "Category": "Poetry",
+    "Author": "Walt Whitman",
+    "Title": "Leaves of Grass",
+    "Year": "1855-01-01T00:00:00",
+    "Quantity": 10,
+    "AgeLimit": 6
+  },
+  {
+    "Id": 6,
+    "Category": "Poetry",
+    "Author": "Threa Almontaser",
+    "Title": "The Wild Fox of Yemen",
+    "Year": "2021-01-01T00:00:00",
+    "Quantity": 10,
+    "AgeLimit": 6
+  },
+  {
+    "Id": 7,
+    "Category": "Education",
+    "Author": "Tara Westover",
+    "Title": "Educated",
+    "Year": "2018-01-01T00:00:00",
+    "Quantity": 10,
+    "AgeLimit": 6
+  },
+  {
+    "Id": 8,
+    "Category": "Education",
+    "Author": "Carol S. Dweck",
+    "Title": "Mindset: The New Psychology of Success",
+    "Year": "2006-01-01T00:00:00",
+    "Quantity": 10,
+    "AgeLimit": 6
+  },
+  {
+    "Id": 9,
+    "Category": "Education",
+    "Author": "John Dewey",
+    "Title": "Democracy and Education",
+    "Year": "1916-01-01T00:00:00",
+    "Quantity": 10,
+    "AgeLimit": 6
+  },
+  {
+    "Id": 10,
+    "Category": "Child",
+    "Author": "Lewis Carroll",
+    "Title": "Alice\u0027s Adventures in Wonderland",
+    "Year": "1865-01-01T00:00:00",
+    "Quantity": 10,
+    "AgeLimit": 3
+  },
+  {
+    "Id": 11,
+    "Category": "Child",
+    "Author": "Lewis Carroll",
+    "Title": "Jabberwocky",
+    "Year": "1871-01-01T00:00:00",
+    "Quantity": 10,
+    "AgeLimit": 3
+  },
+  {
+    "Id": 12,
+    "Category": "Child",
+    "Author": "Lewis Carroll",
+    "Title": "The Walrus and the Carpenter",
+    "Year": "1871-01-01T00:00:00",
+    "Quantity": 8,
+    "AgeLimit": 3
+  }
+]
